@@ -28,43 +28,43 @@ def main():
         exchange_rates_output = {}
 
         for currency in currencies:
-            url = ''.join(
-                [
-                    'https://sdw-wsrest.ecb.europa.eu/service/data/EXR/D.',
-                    currency,
-                    '.EUR.SP00.A?startPeriod=',
-                    date,
-                    '&endPeriod=',
-                    date,
-                    '&format=jsondata'
-                ]
-            )
+            for retry in range(3):
+                try:
+                    url = ''.join(['https://sdw-wsrest.ecb.europa.eu/service/data/EXR/D.', currency,
+                                   '.EUR.SP00.A?startPeriod=', date, '&endPeriod=', date, '&format=jsondata'])
 
-            exchange_rate_response = requests.get(url, timeout=20)
+                    exchange_rate_response = requests.get(url, timeout=20)
 
-            # Try with alternative date if today is not available yet
-            if not exchange_rate_response.text:
+                    # Try with alternative date if today is not available yet
+                    if not exchange_rate_response.text:
 
-                date = get_alternative_date()
+                        date = get_alternative_date()
 
-                url = ''.join(
-                    [
-                        'https://sdw-wsrest.ecb.europa.eu/service/data/EXR/D.',
-                        currency,
-                        '.EUR.SP00.A?startPeriod=',
-                        date,
-                        '&endPeriod=',
-                        date,
-                        '&format=jsondata'
-                    ]
-                )
+                        url = ''.join(['https://sdw-wsrest.ecb.europa.eu/service/data/EXR/D.', currency,
+                                       '.EUR.SP00.A?startPeriod=', date, '&endPeriod=', date, '&format=jsondata'])
 
-                exchange_rate_response = requests.get(url, timeout=20)
+                        exchange_rate_response = requests.get(url, timeout=20)
 
-            exchange_rate_response = exchange_rate_response.json()
+                    exchange_rate_response = exchange_rate_response.json()
 
-            exchange_rates_output['to'.join([currency, 'EUR'])] = float(
-                exchange_rate_response['dataSets'][0]['series']['0:0:0:0:0']['observations']['0'][0])
+                    exchange_rates_output['to'.join([currency, 'EUR'])] = float(
+                        exchange_rate_response['dataSets'][0]['series']['0:0:0:0:0']['observations']['0'][0])
+
+                except requests.Timeout:
+                    logger.log_text('Request for ' + currency + ' exchange rate timed out.', severity='ERROR')
+
+                except requests.ConnectionError:
+                    logger.log_text('Request for ' + currency +
+                                    ' exchange rate failed due to connection error.', severity='ERROR')
+
+                except KeyError:
+                    logger.log_text('Request for ' + currency + ' failed - response structure has changed.',
+                                    severity='ERROR')
+                    break
+
+                else:
+                    logger.log_text('Request for ' + currency + ' exchange rate successful.', severity='INFO')
+                    break
 
         return exchange_rates_output, date
 
