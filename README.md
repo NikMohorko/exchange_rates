@@ -13,6 +13,7 @@ Firstly you need to edit the config.json file, which contains the following para
 - `sender_email_smtp_port`: Sender's SMTP port
 - `use_locally`: `true` when running the application locally, `false` when deploying on cloud
 - `currencies`: list of currencies that you are interested in (e.g. CZK, HUF); by default this is filled with all EU currencies
+- `gcp_project_id`: Google Cloud project ID
 
 ## Google Cloud configuration
 In any case, you need to enable Google Cloud Secret Manager and Cloud Logging. To deploy the application to GCP, you also need to enable Cloud Run and Artifact Registry.

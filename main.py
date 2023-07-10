@@ -155,7 +155,7 @@ def main():
 
     secrets_client = secretmanager.SecretManagerServiceClient(credentials=service_account_credentials)
     secret_content = secrets_client.access_secret_version(
-        name='projects/skilled-flight-305116/secrets/email_password/versions/latest')
+        name='projects/{}/secrets/email_password/versions/latest'.format(settings['gcp_project_id']))
     email_password = secret_content.payload.data.decode('UTF-8')
 
     date_today = datetime.today().strftime('%Y-%m-%d')
